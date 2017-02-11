@@ -69,5 +69,30 @@ def artifacts(sweep_average):
         events.append(list(map(itemgetter(1), g)))
         events[len(events)-1] = list(map(lambda x: x + 1500, events[len(events)-1]))
         events[(len(events)-1)].append(max(events[len(events)-1])+1)
+        events[(len(events)-1)].append(max(events[len(events)-1])+1)
 
     return events
+
+
+def amplitude(average, events):
+
+    if len(events) == 1:
+        amplitude = min(average[max(events[0]):])
+        return amplitude
+
+    else:
+        amplitude = np.empty(len(events))
+        norm_amp = np.empty(len(events))
+        for i in range(0, len(events)):
+            if (i <= (len(events) - 2)) and (len(events) > 2):
+                amplitude[i] = min(average[max(events[i]):min(events[i+1])]) \
+                               - average[max(events[i])]
+                norm_amp[i] = amplitude[i] / amplitude[0]
+            else:
+                amplitude[i] = min(average[max(events[i]):]) \
+														- average[max(events[i])]
+            norm_amp[i] = amplitude[i] / amplitude[0]
+
+    return amplitude, norm_amp
+
+    """there's something off with running this in KO conditions"""
