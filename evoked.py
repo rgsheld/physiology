@@ -59,6 +59,10 @@ def average(signal):
 
 
 def artifacts(sweep_average):
+    
+    """there's somethign off with the way i'm identifying artifacts
+    it's too sensitive to the variable shape and amplitude of the facts.
+    I think a better way may be to search for the sign inversion"""
 
     ddy = np.diff(np.diff(sweep_average))
     fact_index = np.where(abs(ddy[1500:]) > 300)  # index protocol sensitive
