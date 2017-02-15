@@ -88,13 +88,14 @@ def amplitude(average, events):
         amplitude = np.empty(len(events))
         norm_amp = np.empty(len(events))
         for i in range(0, len(events)):
+            base = np.argmax(average[max(events[i]):(max(events[i])+15)]) \
+																+ max(events[i])
             if (i <= (len(events) - 2)) and (len(events) > 2):
-                amplitude[i] = min(average[max(events[i]):min(events[i+1])]) \
-                               - average[max(events[i])]
+                amplitude[i] = min(average[base:min(events[i+1])]) \
+                               - average[base]
                 norm_amp[i] = amplitude[i] / amplitude[0]
             else:
-                amplitude[i] = min(average[max(events[i]):]) \
-														- average[max(events[i])]
+                amplitude[i] = min(average[base:]) - average[base]
             norm_amp[i] = amplitude[i] / amplitude[0]
 
     return amplitude, norm_amp
