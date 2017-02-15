@@ -67,13 +67,16 @@ def artifacts(sweep_average):
     ddy = np.diff(np.diff(sweep_average))
     fact_index = np.where(abs(ddy[1500:]) > 300)  # index protocol sensitive
     index_list = []
-    events = []
     index_list = fact_index[0]
-    for k, g in groupby(enumerate(index_list), lambda x: x[1] - x[0]):
-        events.append(list(map(itemgetter(1), g)))
-        events[len(events)-1] = list(map(lambda x: x + 1500, events[len(events)-1]))
-        events[(len(events)-1)].append(max(events[len(events)-1])+1)
-        events[(len(events)-1)].append(max(events[len(events)-1])+1)
+    j = 0
+    events = []
+    events.append(list(index_list[0])) #iterating numpy.int64 causing probs
+    for i in range(1, len(index_list)):
+        if index_list[i] - index_list[i-1] < 5:
+            events[j].append(list(index_list[i]))
+        else:
+            j += 1
+            events[j].append(list(index_list[i]))
 
     return events
 
