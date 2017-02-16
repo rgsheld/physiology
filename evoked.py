@@ -58,24 +58,25 @@ def average(signal):
     return sweep_average
 
 
-def artifacts(sweep_average):
+def artifacts(sweep_average, times):
     
-    """there's somethign off with the way i'm identifying artifacts
-    it's too sensitive to the variable shape and amplitude of the facts.
-    I think a better way may be to search for the sign inversion"""
+    """this is working fairly well but there is still an issue 
+				with the last artifact not being fully covered"""
 
-    ddy = np.diff(np.diff(sweep_average))
-    fact_index = np.where(abs(ddy[1500:]) > 300)  # index protocol sensitive
+    ddy = np.diff(np.diff(sweep_average)/times[1])/times[1]
+    fact_index = np.where(abs(ddy[1500:]) > 3000000000)  # index protocol sensitive
     index_list = fact_index[0] + 1500
     events = []
     event_n = np.array(index_list[0])
     for i in range(1, (len(index_list))):
-        if (index_list[i] - index_list[i-1] < 5) and (i < len(index_list)):
+        if (index_list[i] - index_list[i-1] < 5):
             event_n = np.append(event_n, index_list[i])
         else:
             event_n = np.append(event_n, np.array((max(event_n)+3)))
             events.append(event_n)
             event_n = np.array(index_list[i])
+
+    events.append(event_n)
 
     return events
 
@@ -101,5 +102,3 @@ def amplitude(average, events):
             norm_amp[i] = amplitude[i] / amplitude[0]
 
     return amplitude, norm_amp
-
-    """there's something off with running this in KO conditions"""
