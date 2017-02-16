@@ -76,6 +76,7 @@ def artifacts(sweep_average, times):
             events.append(event_n)
             event_n = np.array(index_list[i])
 
+    event_n = np.append(event_n, np.array((max(event_n)+3)))
     events.append(event_n)
 
     return events
