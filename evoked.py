@@ -27,7 +27,7 @@ class Protocol(object):
             self.signal[:, i] = sweep
 
         for i, asig in enumerate(bl.segments[0].analogsignals):
-            self.times = asig.times.rescale('s').magnitude
+            self.times = asig.times.rescale('ms').magnitude
 
         self.avg = self.average(self.signal)
         self.stim = self.artifacts(self.avg, self.times)
@@ -58,7 +58,7 @@ class Protocol(object):
     def artifacts(self, sweep_average, times):
 
         ddy = np.diff(np.diff(sweep_average)/times[1])/times[1]
-        fact_index = np.where(abs(ddy[1500:]) > 3000000000)  # index protocol sensitive
+        fact_index = np.where(abs(ddy[1500:]) > 5000)  # index protocol sensitive
         index_list = fact_index[0] + 1500
         events = []
         event_n = np.array(index_list[0])
