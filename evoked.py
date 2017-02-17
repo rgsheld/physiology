@@ -38,7 +38,6 @@ class Protocol(object):
             self.amp = self.amplitude(self.avg, self.stim)
 
     def average(self, signal):
-        "baseline_mean = []"
 
         for i in range(0, len(signal[1])):
             sweep = signal[:, i]
@@ -58,9 +57,6 @@ class Protocol(object):
 
     def artifacts(self, sweep_average, times):
 
-        """this is working fairly well but there is still an issue
-				with the last artifact not being fully covered"""
-
         ddy = np.diff(np.diff(sweep_average)/times[1])/times[1]
         fact_index = np.where(abs(ddy[1500:]) > 3000000000)  # index protocol sensitive
         index_list = fact_index[0] + 1500
@@ -69,6 +65,8 @@ class Protocol(object):
         for i in range(1, (len(index_list))):
             if (index_list[i] - index_list[i-1] < 5):
                 event_n = np.append(event_n, index_list[i])
+            elif (np.size(event_n) < 3):
+                event_n = np.array(index_list[i+1])
             else:
                 event_n = np.append(event_n, np.array((max(event_n)+3)))
                 events.append(event_n)
@@ -89,7 +87,7 @@ class Protocol(object):
             amplitude = np.empty(len(events))
             norm_amp = np.empty(len(events))
             for i in range(0, len(events)):
-                base = min(events[i])
+                base = min(events[i]) - 1
                 if (i <= (len(events) - 2)) and (len(events) > 2):
                     amplitude[i] = min(average[base:min(events[i+1])]) \
                                    - average[base]
