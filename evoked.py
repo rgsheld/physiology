@@ -89,8 +89,7 @@ class Protocol(object):
             amplitude = np.empty(len(events))
             norm_amp = np.empty(len(events))
             for i in range(0, len(events)):
-                base = np.argmax(average[max(events[i]):(max(events[i])+15)]) \
-																+ max(events[i])
+                base = min(events[i])
                 if (i <= (len(events) - 2)) and (len(events) > 2):
                     amplitude[i] = min(average[base:min(events[i+1])]) \
                                    - average[base]
