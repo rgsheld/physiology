@@ -24,6 +24,6 @@ def Unpack(file):
         signal[:, i] = sweep
 
     for i, asig in enumerate(bl.segments[0].analogsignals):
-        times = asig.times.rescale('s').magnitude
+        times = asig.times.rescale('ms').magnitude
 
     return signal, times

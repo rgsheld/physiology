@@ -8,27 +8,15 @@ import a trace as an abf file using the neo module and plot
 it in a new figure window.
 """
 
-from neo import io
 import numpy as np
+from physiology.unpack import Unpack
 
 
 class Protocol(object):
 
     def __init__(self, trace):
 
-        read = io.AxonIO(filename=trace)
-        bl = read.read_block(cascade=True, lazy=False)
-
-        self.signal = np.empty([len(bl.segments[0].analogsignals[0]), \
-																											len(bl.segments)])
-        for i in range(0, len(bl.segments)):
-            sweep = bl.segments[i].analogsignals[0]
-            sweep = np.squeeze(sweep)
-            self.signal[:, i] = sweep
-
-        for i, asig in enumerate(bl.segments[0].analogsignals):
-            self.times = asig.times.rescale('ms').magnitude
-
+        self.signal, self.times = Unpack(trace)
         self.avg = self.average(self.signal)
         self.stim = self.artifacts(self.avg, self.times)
         if len(self.stim) > 1:
@@ -36,6 +24,8 @@ class Protocol(object):
             self.amp, self.norm = self.amplitude(self.avg, self.stim)
         else:
             self.amp = self.amplitude(self.avg, self.stim)
+            self.rise_idx, self.rise_time, self.decay_idx, self.decay_time = \
+                self.kinetics(self.avg, self.stim, self.times)
 
     def average(self, signal):
 
@@ -60,13 +50,15 @@ class Protocol(object):
         ddy = np.diff(np.diff(sweep_average)/times[1])/times[1]
         fact_index = np.where(abs(ddy[1500:]) > 5000)  # index protocol sensitive
         index_list = fact_index[0] + 1500
+        if len(index_list) < 1:
+            raise RuntimeError("No stimulus artifacts detected. Check file")
         events = []
         event_n = np.array(index_list[0])
         for i in range(1, (len(index_list))):
             if (index_list[i] - index_list[i-1] < 5):
                 event_n = np.append(event_n, index_list[i])
-            elif (np.size(event_n) < 3):
-                event_n = np.array(index_list[i+1])
+            elif (np.size(event_n) < 5):
+                event_n = np.array(index_list[i+1]) # trouble here
             else:
                 event_n = np.append(event_n, np.array((max(event_n)+3)))
                 events.append(event_n)
@@ -97,3 +89,31 @@ class Protocol(object):
                 norm_amp[i] = amplitude[i] / amplitude[0]
 
         return amplitude, norm_amp
+
+    def kinetics(self, avg, events, times):
+
+        if len(events) > 1:
+            return
+        else:
+            base = np.argmax(avg[max(events[0]):max(events[0])+10]) \
+                    + max(events[0])
+            peak = np.argmin(avg[base:]) + base
+            amplitude = min(avg[base:])
+            twenty = 0.2 * amplitude
+            eighty = 0.8 * amplitude
+            decay = 0.37 * amplitude
+
+            rise_events = np.where(np.logical_and(avg[base:peak] < twenty,
+                                           avg[base:peak] > eighty))
+            rise_idx = rise_events[0] + base
+            if len(rise_idx) >= 1:
+                rise_time = (max(rise_idx) - min(rise_idx)) * times[1]
+            else:
+                rise_time = 'Rise time start not found'
+
+            decay_events = np.where(np.logical_and(avg[peak:] > amplitude,
+                                                   avg[peak:] < decay))
+            decay_idx = decay_events[0] + peak
+            decay_time = float((max(decay_idx) - min(decay_idx))) * times[1]
+
+        return rise_idx, rise_time, decay_idx, decay_time
