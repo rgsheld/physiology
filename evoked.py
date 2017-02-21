@@ -98,12 +98,15 @@ class Protocol(object):
             for i in range(0, len(events)):
                 base = min(events[i]) - 1
                 if (i <= (len(events) - 2)) and (len(events) > 2):
-                    amplitude[i] = min(average[base:min(events[i+1])]) \ #error here
+                    amplitude[i] = min(average[(base+15):min(events[i+1])]) \
                                    - average[base]
                     norm_amp[i] = amplitude[i] / amplitude[0]
                 else:
-                    amplitude[i] = min(average[base:]) - average[base]
+                    amplitude[i] = min(average[(base+15):]) - average[base]
                 norm_amp[i] = amplitude[i] / amplitude[0]
+                """
+                there's a problem with PPR. Maybe the base +15 fix
+                """
 
         return amplitude, norm_amp
 
