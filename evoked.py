@@ -55,10 +55,8 @@ class Protocol(object):
         events = []
         event_n = np.array(index_list[0])
         for i in range(1, (len(index_list))):
-            if (index_list[i] - index_list[i-1] < 3):
+            if (index_list[i] - index_list[i-1] < 5):
                 event_n = np.append(event_n, index_list[i])
-            elif (np.size(event_n) < 5):
-                event_n = np.array(index_list[i+1]) # trouble here
             else:
                 event_n = np.append(event_n, np.array((max(event_n)+3)))
                 events.append(event_n)
@@ -66,6 +64,10 @@ class Protocol(object):
 
         event_n = np.append(event_n, np.array((max(event_n)+3)))
         events.append(event_n)
+
+        for i in range(1, len(events)):
+            if (np.size(events[i]) < 4):
+                events = np.delete(events, i)
 
         return events
 
