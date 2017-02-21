@@ -10,6 +10,7 @@ it in a new figure window.
 
 import numpy as np
 from physiology.unpack import Unpack
+from copy import copy
 
 
 class Protocol(object):
@@ -48,7 +49,7 @@ class Protocol(object):
     def artifacts(self, sweep_average, times):
 
         ddy = np.diff(np.diff(sweep_average)/times[1])/times[1]
-        fact_index = np.where(abs(ddy[1500:]) > 5000)  # index protocol sensitive
+        fact_index = np.where(abs(ddy[1500:]) > 2500)  # index protocol sensitive
         index_list = fact_index[0] + 1500
         if len(index_list) < 1:
             raise RuntimeError("No stimulus artifacts detected. Check file")
@@ -57,17 +58,31 @@ class Protocol(object):
         for i in range(1, (len(index_list))):
             if (index_list[i] - index_list[i-1] < 5):
                 event_n = np.append(event_n, index_list[i])
+            elif (np.size(event_n) < 2):
+                event_n = np.array(index_list[i+1])
             else:
                 event_n = np.append(event_n, np.array((max(event_n)+3)))
                 events.append(event_n)
                 event_n = np.array(index_list[i])
 
-        event_n = np.append(event_n, np.array((max(event_n)+3)))
-        events.append(event_n)
+        if np.size(event_n) > 2:
+            event_n = np.append(event_n, np.array((max(event_n)+3)))
+            events.append(event_n)
 
-        for i in range(1, len(events)):
-            if (np.size(events[i]) < 4):
-                events = np.delete(events, i)
+        j = 0
+        for i in range(0, len(events)):
+            if (np.size(events[j]) < 5):
+                del events[j]
+            else:
+                j += 1
+
+        j = 1
+        if len(events) > 1:
+            for i in range(1, len(events)):
+                if ((min(events[j]) - min(events[j-1])) * times[1]) < 5:
+                    del events[j]
+                else:
+                    j += 1
 
         return events
 
@@ -83,7 +98,7 @@ class Protocol(object):
             for i in range(0, len(events)):
                 base = min(events[i]) - 1
                 if (i <= (len(events) - 2)) and (len(events) > 2):
-                    amplitude[i] = min(average[base:min(events[i+1])]) \
+                    amplitude[i] = min(average[base:min(events[i+1])]) \ #error here
                                    - average[base]
                     norm_amp[i] = amplitude[i] / amplitude[0]
                 else:
